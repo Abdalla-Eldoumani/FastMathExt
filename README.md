@@ -1,6 +1,6 @@
 # FastMathExt
 
-astMathExt is a high-performance C++ extension for Python that provides efficient implementation of mathematical functions. Currently, it implements an exact factorial calculator that can handle arbitrarily large numbers with perfect precision and optimized matrix multiplication, leveraging C++ and OpenMP for optimal performance.
+FastMathExt is a high-performance C++ extension for Python that provides efficient implementation of mathematical functions. Currently, it implements an exact factorial calculator that can handle arbitrarily large numbers with perfect precision and optimized matrix multiplication, leveraging C++ and OpenMP for optimal performance.
 
 ## Features
 
