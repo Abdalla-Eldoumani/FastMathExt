@@ -1,14 +1,20 @@
 # FastMathExt
 
-FastMathExt is a high-performance C++ extension for Python that provides efficient implementation of mathematical functions. Currently, it implements a fast factorial calculation using iterative approach with modulo arithmetic to prevent integer overflow.
+FastMathExt is a high-performance C++ extension for Python that provides efficient implementation of mathematical functions. It includes fast factorial calculation and optimized matrix multiplication, leveraging C++ and OpenMP for optimal performance.
 
 ## Features
 
+### Factorial Calculation
 - Fast factorial calculation using iteration
 - Modulo arithmetic (10^9 + 7) to handle large numbers
-- Written in C++ for optimal performance
-- Python bindings using pybind11
-- Proper error handling for invalid inputs
+- Dynamic programming approach for optimization
+
+### Matrix Multiplication
+- Cache-optimized matrix multiplication
+- OpenMP parallelization for multi-threaded performance
+- Support for both square and non-square matrices
+- Comparable performance to NumPy for large matrices
+- Block matrix multiplication strategy for better cache utilization
 
 ## Requirements
 
@@ -35,20 +41,46 @@ cd FastMathExt
 ```bash
 pip install pybind11 setuptools
 python setup.py build_ext --inplace
-pip install mathext
 ```
 
 ## Usage
 
+### Factorial Calculation
 ```python
-import mathext
+import MathExt
 
 # Calculate the factorial of 5
-result = mathext.factorial(5)
+result = MathExt.factorial(5)
 print(result) # Output: 120
 ```
 
 - You can also run the included test script:
 ```bash
 python test_mathext.py
+```
+
+### Matrix Multiplication
+```python
+import MathExt
+import numpy as np
+
+# Create two matrices
+A = [[1, 2, 3],
+     [4, 5, 6],
+     [7, 8, 9]]
+B = [[9, 8, 7],
+     [6, 5, 4],
+     [3, 2, 1]]
+
+# Multiply matrices using FastMathExt
+result = MathExt.matrix_multiply(A, B)
+
+# Compare with NumPy
+np_result = np.dot(A, B)
+print("Results match:", np.allclose(result, np_result))
+```
+
+- You can also run the included test script:
+```bash
+python test_matrix.py
 ```
