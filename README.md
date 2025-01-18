@@ -1,13 +1,15 @@
 # FastMathExt
 
-FastMathExt is a high-performance C++ extension for Python that provides efficient implementation of mathematical functions. It includes fast factorial calculation and optimized matrix multiplication, leveraging C++ and OpenMP for optimal performance.
+astMathExt is a high-performance C++ extension for Python that provides efficient implementation of mathematical functions. Currently, it implements an exact factorial calculator that can handle arbitrarily large numbers with perfect precision and optimized matrix multiplication, leveraging C++ and OpenMP for optimal performance.
 
 ## Features
 
 ### Factorial Calculation
-- Fast factorial calculation using iteration
-- Modulo arithmetic (10^9 + 7) to handle large numbers
-- Dynamic programming approach for optimization
+- Exact factorial calculation without precision loss
+- Handles arbitrarily large numbers (1000+ factorial)
+- Returns precise results as strings to maintain accuracy
+- Efficient implementation using Python's arbitrary-precision arithmetic
+- Proper error handling for invalid inputs
 
 ### Matrix Multiplication
 - Cache-optimized matrix multiplication
@@ -49,9 +51,13 @@ python setup.py build_ext --inplace
 ```python
 import MathExt
 
-# Calculate the factorial of 5
+# Calculate small factorials
 result = MathExt.factorial(5)
-print(result) # Output: 120
+print(result)  # Output: 120
+
+# Calculate large factorials
+result = MathExt.factorial(100)
+print(result)  # Output: exact 100! (158 digits)
 ```
 
 - You can also run the included test script:

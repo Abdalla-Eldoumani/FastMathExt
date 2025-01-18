@@ -6,23 +6,22 @@
 
 namespace py = pybind11;
 
-const long long MOD = 1000000007;
-std::vector<long long> fact_dp(1, 1);
-
-long long factorial(long long n) {
+std::string factorial(long long n) {
     if (n < 0) {
         throw std::invalid_argument("Input must be non-negative");
     }
 
-    if (n < static_cast<long long>(fact_dp.size())) {
-        return fact_dp[n];
+    if (n <= 1) {
+        return "1";
     }
 
-    for (long long i = fact_dp.size(); i <= n; i++) {
-        fact_dp.push_back((fact_dp[i-1] * i) % MOD);
+    py::object result = py::cast(1);
+    
+    for (long long i = 2; i <= n; i++) {
+        result = result * py::cast(i);
     }
 
-    return fact_dp[n];
+    return py::str(result);
 }
 
 void validate_matrices(const std::vector<std::vector<double>>& A, 
@@ -79,14 +78,14 @@ std::vector<std::vector<double>> matrix_multiply(
 
 PYBIND11_MODULE(MathExt, m) {
     m.doc() = "Extension module for efficient calculations";
-    
     m.def("matrix_multiply", &matrix_multiply,
           "Multiply two matrices using optimized blocking",
           py::arg("A"), py::arg("B"),
           py::return_value_policy::move);
     
+    m.doc() = "Extension module for exact factorial calculations using arbitrary precision";
     m.def("factorial", &factorial, 
-          "Calculate factorial of n using dynamic programming",
-          py::arg("n"), 
-          py::return_value_policy::copy);
+          "Calculate exact factorial of n\n"
+          "Returns the precise result as a string to handle arbitrary-precision numbers",
+          py::arg("n"));
 }
