@@ -113,30 +113,30 @@ python test_matrix.py
 
 ### Matrix Multiplication Optimizations
 1. **SIMD Instructions**
-- Uses AVX2 instructions for 256-bit vector operations
-- Processes 4 doubles simultaneously
-- Employs FMA instructions for better throughput
+  - Uses AVX2 instructions for 256-bit vector operations
+  - Processes 4 doubles simultaneously
+  - Employs FMA instructions for better throughput
 
 2. **Cache Optimization**
-- Block size tuned to L1 cache (32KB)
-- Two-level blocking strategy
-- Aligned memory access patterns
-- Local accumulation arrays for better cache utilization
+  - Block size tuned to L1 cache (32KB)
+  - Two-level blocking strategy
+  - Aligned memory access patterns
+  - Local accumulation arrays for better cache utilization
 
 3. **Parallelization**
-- OpenMP parallel processing
-- Dynamic scheduling for better load balancing
-- Optimized for modern multi-core processors
-- Thread count tuned to CPU's logical core count
+  - OpenMP parallel processing
+  - Dynamic scheduling for better load balancing
+  - Optimized for modern multi-core processors
+  - Thread count tuned to CPU's logical core count
 
 4. **Precision**
-- Matches NumPy's accuracy with double precision
-- FMA instructions for better precision
-- Proper handling of edge cases
+  - Matches NumPy's accuracy with double precision
+  - FMA instructions for better precision
+  - Proper handling of edge cases
 
 5. **Performance**
-- Small Matrices: Excellent accuracy, competitive performance
-- Medium Matrices: Performance comparable to NumPy
-- Large Matrices: Sometimes outperforms NumPy
-- Memory Usage: Efficient with minimal overhead
-- Thread Scaling: Near-linear up to physical core count
+  - Small Matrices: Excellent accuracy, competitive performance
+  - Medium Matrices: Performance comparable to NumPy
+  - Large Matrices: Sometimes outperforms NumPy
+  - Memory Usage: Efficient with minimal overhead
+  - Thread Scaling: Near-linear up to physical core count
