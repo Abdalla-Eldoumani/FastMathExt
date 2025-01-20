@@ -12,7 +12,7 @@ namespace py = pybind11;
 #ifdef CPU_INTEL_COMET_LAKE
     constexpr int L1_BLOCK_SIZE = 32;
     constexpr int L2_BLOCK_SIZE = 128;
-    constexpr int VECTOR_SIZE = 4;  // AVX2 = 256 bits = 4 doubles
+    constexpr int VECTOR_SIZE = 4;
     constexpr int NUM_THREADS = 12;
 #else
     constexpr int L1_BLOCK_SIZE = 32;
