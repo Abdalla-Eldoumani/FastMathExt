@@ -1,4 +1,5 @@
 .vscode
-test.py
+# test.py
 matrix_multiplication_results.txt
-plot.py
+# plot.py
+commands.txt

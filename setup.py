@@ -1,6 +1,5 @@
-from setuptools import setup, Extension
+from setuptools import setup
 from pybind11.setup_helpers import Pybind11Extension, build_ext
-import sys
 import platform
 
 extra_compile_args = []
@@ -8,16 +7,19 @@ extra_link_args = []
 
 # CPU-specific optimization flags for Windows
 cpu_specific_flags = [
-    '/arch:AVX2',     # My CPU's support for AVX2
-    '/favor:INTEL64', # Optimize for Intel 64-bit
-    '/GA',            # Optimize for Windows Application
-    '/O2',            # Maximum Optimization
-    '/Oi',            # Enable Intrinsic Functions
-    '/Ot',            # Favor Fast Code
-    '/Oy',            # Omit Frame Pointers
-    '/fp:fast',       # Fast Floating-point Model
-    '/GL',            # Whole Program Optimization
-    '/Gw',            # Optimize Global Data
+    '/arch:AVX2',
+    '/favor:INTEL64',
+    '/GA',
+    '/O2',
+    '/Oi',
+    '/Ot',
+    '/Oy',
+    '/fp:fast',
+    '/GL',
+    '/Gw',
+    '/openmp',
+    '/openmp:experimental',   # <- Add this if you want #pragma omp simd
+    '/MP12'
 ]
 
 if platform.system() == "Windows":
@@ -25,6 +27,8 @@ if platform.system() == "Windows":
     extra_compile_args.extend([
         '/openmp',   # Regular OpenMP instead of LLVM OpenMP
         '/MP12',     # Use all 12 threads for compilation
+        '/Qopenmp',  # Enable OpenMP support
+        '/arch:AVX512',
     ])
     extra_link_args.extend([
         '/LTCG',     # Link-time Code Generation
@@ -47,6 +51,8 @@ else:
         '-fopt-info-vec-missed',
         '-fprefer-vector-width=256',
         '-fopenmp-simd',
+        '-mavx512f',
+        '-mavx512cd'
     ])
     extra_link_args.extend([
         '-fopenmp',
