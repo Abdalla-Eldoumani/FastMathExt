@@ -1,47 +1,55 @@
 # FastMathExt
 
-FastMathExt is a high-performance C++ extension for Python that provides efficient implementation of mathematical functions. Currently, it implements an exact factorial calculator and a highly optimized matrix multiplication that outperforms NumPy's performance, leveraging advanced C++ features, SIMD instructions, and multi-threading.
+FastMathExt is a high-performance C++ extension for Python that provides efficient implementations of mathematical functions. It currently includes:
+
+1. **Exact Factorial Calculation** (with arbitrary precision)  
+2. **Highly Optimized Matrix Multiplication** leveraging advanced CPU features and multi-threading.
+
+## Key Improvements in v1.0.0
+
+### 1. Improved Memory Layout
+- **Flat memory layout** (`Matrix` class) ensures **contiguous memory access** for more efficient caching and prefetching.
+- Better **cache locality** for large matrices.
+
+### 2. Enhanced Cache Blocking Strategy
+- **Multi-level blocking**:
+  - **L3 blocking** (512×512)
+  - **L2 blocking** (128×128)
+  - **L1 blocking** (32×32)
+- **Explicit memory prefetching** and **thread-local block accumulation** to reduce latency and improve parallel performance.
+
+### 3. Algorithmic Enhancement: Strassen’s Algorithm
+- **Strassen’s algorithm** for large square matrices (n ≥ 1024).
+- Reduces theoretical complexity from O(n³) to ~O(n^2.807).
+- **Adaptive threshold** to switch back to standard algorithm for smaller sub-matrices.
+- **OpenMP task-based parallelism** for Strassen’s sub-multiplications.
+
+### 4. Advanced OpenMP Parallelization
+- **Task-based parallelism** for Strassen’s seven sub-multiplications.
+- Fine-grained **dynamic scheduling** with reduced thread sync points.
+- Improves **scalability** and ensures **efficient load balancing** across available threads.
+
+### 5. Advanced SIMD and Memory Optimizations
+- **AVX2** and **FMA** (Fused Multiply-Add) for efficient vectorization.
+- **Memory alignment** and **explicit prefetching** of blocks.
+- **Reduced branching** within the critical compute loops.
 
 ## Features
 
 ### Factorial Calculation
-- Exact factorial calculation without precision loss
-- Handles arbitrarily large numbers (1000+ factorial)
-- Returns precise results as strings to maintain accuracy
-- Efficient implementation using Python's arbitrary-precision arithmetic
-- Proper error handling for invalid inputs
+- **Exact factorial** calculation using Python’s arbitrary-precision arithmetic under the hood.
+- **No precision loss**, even for factorials of very large numbers.
+- Returns results as **strings** to handle extremely large outputs.
+- **Error handling** for invalid inputs (e.g., negative numbers).
 
 ### Matrix Multiplication
-- High-performance implementation rivaling NumPy's speed
-- Advanced optimizations:
-  - AVX2 SIMD instructions for vectorized operations
-  - OpenMP parallelization for multi-threading
-  - Cache-friendly blocking strategy
-  - FMA (Fused Multiply-Add) instructions
-  - Aligned memory access patterns
-- Support for both square and non-square matrices
-- Matches NumPy's accuracy with double precision
-- Performance comparable to or better than NumPy in many cases
-
-#### Performance Statistics (1000x1000 matrices)
-Based on 1500 measurements with an Intel i7-10750H CPU:
-
-**C++ Implementation:**
-- Mean time: 0.2451 seconds
-- Standard deviation: 0.0832 seconds
-- Min time: 0.1460 seconds
-- Max time: 0.6280 seconds
-
-**NumPy Implementation:**
-- Mean time: 0.2647 seconds
-- Standard deviation: 0.1128 seconds
-- Min time: 0.1340 seconds
-- Max time: 0.8991 seconds
-
-**Performance Advantage:**
-- FastMathExt is 7.39% faster than NumPy on average
-- More consistent performance (lower standard deviation)
-- Better worst-case performance (lower maximum time)
+- **High-performance** implementation designed to rival or exceed NumPy speeds.
+- **Advanced optimizations**:
+  - AVX2 SIMD, FMA instructions, OpenMP parallelization.
+  - Cache-aware blocking strategy (L3 → L2 → L1).
+  - **Strassen’s Algorithm** for very large, square matrices (≥ 1024×1024).
+- Supports both **square** and **non-square** matrices.
+- **Double-precision accuracy**, matching NumPy’s floating-point output.
 
 ## Requirements
 
@@ -120,39 +128,65 @@ print("Results match:", np.allclose(result, np_result))
 python test_matrix.py
 ```
 
+#### Performance Statistics (1000x1000 matrices)
+
+**Latest Benchmark (10,000 measurements)**  
+Tested on the same Intel i7-10750H system:
+
+| Implementation | Mean Time  | Std Dev   | Min Time  | Max Time  |
+| -------------- | ---------- | --------- | --------- | --------- |
+| **C++**        | 0.2574 s   | 0.0704 s  | 0.1290 s  | 0.8141 s  |
+| **NumPy**      | 0.2799 s   | 0.0907 s  | 0.1280 s  | 1.1814 s  |
+
+- C++ is ~8.05% faster on average.  
+- More consistent performance (lower standard deviation).  
+- Faster worst-case performance (lower max time).
+
+**Prior 1500-Measurement Benchmark**
+
+| Implementation | Mean Time  | Std Dev   | Min Time  | Max Time  |
+| -------------- | ---------- | --------- | --------- | --------- |
+| **C++**        | 0.2451 s   | 0.0832 s  | 0.1460 s  | 0.6280 s  |
+| **NumPy**      | 0.2647 s   | 0.1128 s  | 0.1340 s  | 0.8991 s  |
+
+- C++ is ~7.39% faster on average.  
+
+- Both benchmarks demonstrate consistent gains over NumPy, with lower variance and better worst-case performance.
+
 ## Implementation Details (Matrix Multiplication)
 
 ### Matrix Multiplication Optimizations
 #### **SIMD Instructions**
-  - Uses AVX2 instructions for 256-bit vector operations
-  - Processes 4 doubles simultaneously
-  - Employs FMA instructions for better throughput
+  - AVX2 for 256-bit wide vector operations on double-precision floats.
+  - FMA used to fuse multiply and add, reducing rounding errors and improving throughput.
 
-#### **Cache Optimization**
-  - Block size tuned to L1 cache (32KB)
-  - Two-level blocking strategy
-  - Aligned memory access patterns
-  - Local accumulation arrays for better cache utilization
+#### **Hierarchical Cache Blocking**
+  - Three-level blocking: L3 (512×512) → L2 (128×128) → L1 (32×32).
+  - Explicit memory prefetching to reduce cache misses.
+  - Thread-local accumulation to avoid false sharing.
 
 #### **Parallelization**
-  - OpenMP parallel processing
-  - Dynamic scheduling for better load balancing
-  - Optimized for modern multi-core processors
-  - Thread count tuned to CPU's logical core count
+  - OpenMP used for parallel loops and sections.
+  - Task-based approach in Strassen’s algorithm to leverage multi-core systems.
+  - Dynamic scheduling for load balancing.
 
-#### **Precision**
-  - Matches NumPy's accuracy with double precision
-  - FMA instructions for better precision
-  - Proper handling of edge cases
+#### **Strassen’s Algorithm**
+  - Used only for large, square matrices (≥ 1024×1024).
+  - Seven recursive sub-multiplications, each parallelized.
+  - Switches back to standard multiplication below an adaptive threshold.
+
+#### **Memory Alignment and Prefetching**
+  - Flat memory layout ensures contiguous storage and fewer cache misses.
+  - Alignment and prefetching help maintain throughput in critical loops.
 
 ### Performance Characteristics
-#### **Consistency**
-  - Lower standard deviation than NumPy (0.0832s vs 0.1128s)
-  - More predictable execution times
-  - Better worst-case performance (0.6280s vs 0.8991s)
+#### **Reduced Cache Misses**
+  - Localized access patterns with hierarchical blocking and contiguous memory arrays.
+
+#### **High Parallel Efficiency**
+  - Reduced synchronization points.
+  - Balanced task distribution across cores with OpenMP’s dynamic scheduling.
 
 #### **Scalability**
-  - Near-linear scaling with core count
-  - Efficient use of all available CPU threads
-  - Optimal performance on modern Intel processors
-  - Balanced resource utilization
+  - Near-linear scaling with the number of cores for large matrix sizes.
+  - Minimizes overhead for data transfers between caches.

@@ -18,7 +18,7 @@ cpu_specific_flags = [
     '/GL',
     '/Gw',
     '/openmp',
-    '/openmp:experimental',   # <- Add this if you want #pragma omp simd
+    '/openmp:experimental',
     '/MP12'
 ]
 

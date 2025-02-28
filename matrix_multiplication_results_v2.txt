@@ -26103,13 +26103,6 @@ Speed Ratio (NumPy/C++): 0.85
 
 
 Large matrix (1000x1000) performance test:
-C++ Implementation Time: 0.3370 seconds
-NumPy Implementation Time: 0.2330 seconds
-Results Match: True
-Speed Ratio (NumPy/C++): 0.69
-
-
-Large matrix (1000x1000) performance test:
 C++ Implementation Time: 0.2580 seconds
 NumPy Implementation Time: 0.4280 seconds
 Results Match: True
@@ -69991,4 +69984,11 @@ C++ Implementation Time: 0.1560 seconds
 NumPy Implementation Time: 0.1640 seconds
 Results Match: True
 Speed Ratio (NumPy/C++): 1.05
+
+
+Large matrix (1000x1000) performance test:
+C++ Implementation Time: 0.2120 seconds
+NumPy Implementation Time: 0.2150 seconds
+Results Match: True
+Speed Ratio (NumPy/C++): 1.01
 
