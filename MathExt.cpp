@@ -21,6 +21,9 @@ private:
     int cols;
 
 public:
+
+    Matrix() : rows(0), cols(0) {}
+
     Matrix(int r, int c) : rows(r), cols(c), data(r * c, 0.0) {}
     
     Matrix(const std::vector<std::vector<double>>& mat) {
@@ -63,6 +66,14 @@ public:
     double* get_row_ptr(int row) {
         return &data[row * cols];
     }
+
+    const double* get_ptr(int i, int j) const {
+        return &data[i * cols + j];
+    }
+    
+    double* get_ptr(int i, int j) {
+        return &data[i * cols + j];
+    }
 };
 
 std::string factorial(long long n) {
@@ -94,8 +105,7 @@ void validate_matrices(const std::vector<std::vector<double>>& A,
 }
 
 bool should_use_strassen(int M, int N, int K) {
-    // Only use Strassen for large, square matrices
-    return (M >= 1024 && N >= 1024 && K >= 1024 && 
+    return (M >= 100 && N >= 100 && K >= 100 && 
             M == N && N == K);
 }
 
@@ -109,10 +119,10 @@ Matrix strassen_multiply(const Matrix& A, const Matrix& B, int threshold = 128) 
                 __m256d a_val = _mm256_set1_pd(A.at(i, k));
                 for (int j = 0; j < n; j += VECTOR_SIZE) {
                     if (j + VECTOR_SIZE <= n) {
-                        __m256d b_vec = _mm256_loadu_pd(&B.at(k, j));
-                        __m256d c_vec = _mm256_loadu_pd(&C.at(i, j));
+                        __m256d b_vec = _mm256_loadu_pd(B.get_ptr(k, j));
+                        __m256d c_vec = _mm256_loadu_pd(C.get_ptr(i, j));
                         c_vec = _mm256_fmadd_pd(a_val, b_vec, c_vec);
-                        _mm256_storeu_pd(&C.at(i, j), c_vec);
+                        _mm256_storeu_pd(C.get_ptr(i, j), c_vec);
                     }
                     else {
                         for (int jr = j; jr < n; jr++) {
@@ -173,7 +183,7 @@ Matrix strassen_multiply(const Matrix& A, const Matrix& B, int threshold = 128) 
         }
     }
     
-    Matrix P1, P2, P3, P4, P5, P6, P7;
+    Matrix P1(m, m), P2(m, m), P3(m, m), P4(m, m), P5(m, m), P6(m, m), P7(m, m);
     
     #pragma omp parallel sections
     {
@@ -363,7 +373,7 @@ Matrix standard_multiply(const Matrix& A, const Matrix& B) {
                                         
                                         int j = j1;
                                         for (; j + VECTOR_SIZE <= std::min(j1 + L1_BLOCK_SIZE, N); j += VECTOR_SIZE) {
-                                            __m256d b_vec = _mm256_loadu_pd(&B.at(k, j));
+                                            __m256d b_vec = _mm256_loadu_pd(B.get_ptr(k, j));
                                             __m256d sum_vec = _mm256_loadu_pd(&local_sum[i - i1][j - j1]);
                                             sum_vec = _mm256_fmadd_pd(a_vec, b_vec, sum_vec);
                                             _mm256_storeu_pd(&local_sum[i - i1][j - j1], sum_vec);

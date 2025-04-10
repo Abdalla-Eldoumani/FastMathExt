@@ -25,10 +25,18 @@ cpu_specific_flags = [
 if platform.system() == "Windows":
     extra_compile_args.extend(cpu_specific_flags)
     extra_compile_args.extend([
-        '/openmp',   # Regular OpenMP instead of LLVM OpenMP
-        '/MP12',     # Use all 12 threads for compilation
-        '/Qopenmp',  # Enable OpenMP support
+        '/openmp:experimental',
+        '/Qopenmp',
         '/arch:AVX512',
+        '/fp:fast',  
+        '/Qopenmp',  
+        '/Qopenmp-simd',
+        '/Qpar', 
+    ])
+    extra_link_args.extend([
+        '/LTCG',     # Link-time Code Generation
+        '/OPT:REF',  # Eliminate Unreferenced Data
+        '/OPT:ICF',  # Identical COMDAT Folding
     ])
     extra_link_args.extend([
         '/LTCG',     # Link-time Code Generation

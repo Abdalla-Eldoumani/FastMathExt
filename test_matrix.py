@@ -21,7 +21,7 @@ def test_matrix_multiplication():
         print("Match:", np.allclose(result, np_result))
 
         # Test different matrix sizes
-        sizes = [1000]
+        sizes = [100, 250, 500, 1000, 1500, 2000]
         
         print("\nLarge matrix performance tests:\n")
         for size in sizes:
@@ -49,7 +49,6 @@ def test_matrix_multiplication():
             print(f"Results Match: {np.allclose(result, np_result)}")
             print(f"Speed Ratio (NumPy/C++): {numpy_time/cpp_time:.2f}")
             
-            # Force garbage collection to ensure fair comparison
             gc.collect()
 
         # Test case 3: Non-square matrices
