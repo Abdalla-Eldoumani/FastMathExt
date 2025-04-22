@@ -5,6 +5,7 @@
 #include <omp.h>
 #include <immintrin.h>
 #include <memory>
+#include <algorithm>
 
 namespace py = pybind11;
 
@@ -13,6 +14,13 @@ constexpr int L2_BLOCK_SIZE = 128;
 constexpr int L3_BLOCK_SIZE = 512;
 constexpr int VECTOR_SIZE = 4;
 constexpr int NUM_THREADS = 12;
+constexpr int LARGE_MATRIX_THRESHOLD = 2000;
+constexpr int STRASSEN_THRESHOLD = 512;
+
+void optimize_threads() {
+    int max_threads = omp_get_max_threads();
+    omp_set_num_threads(max_threads);
+}
 
 class Matrix {
 private:
@@ -21,7 +29,6 @@ private:
     int cols;
 
 public:
-
     Matrix() : rows(0), cols(0) {}
 
     Matrix(int r, int c) : rows(r), cols(c), data(r * c, 0.0) {}
@@ -105,7 +112,7 @@ void validate_matrices(const std::vector<std::vector<double>>& A,
 }
 
 bool should_use_strassen(int M, int N, int K) {
-    return (M >= 100 && N >= 100 && K >= 100 && 
+    return (M >= STRASSEN_THRESHOLD && N >= STRASSEN_THRESHOLD && K >= STRASSEN_THRESHOLD && 
             M == N && N == K);
 }
 
@@ -401,10 +408,57 @@ Matrix standard_multiply(const Matrix& A, const Matrix& B) {
     return C;
 }
 
+Matrix tiled_multiply_large(const Matrix& A, const Matrix& B) {
+    int M = A.get_rows();
+    int K = A.get_cols();
+    int N = B.get_cols();
+    
+    Matrix C(M, N);
+
+    const int TILE_SIZE = 512;
+    
+    #pragma omp parallel for collapse(2) schedule(dynamic)
+    for (int i0 = 0; i0 < M; i0 += TILE_SIZE) {
+        for (int j0 = 0; j0 < N; j0 += TILE_SIZE) {
+            int imax = std::min(i0 + TILE_SIZE, M);
+            int jmax = std::min(j0 + TILE_SIZE, N);
+            
+            for (int k0 = 0; k0 < K; k0 += TILE_SIZE) {
+                int kmax = std::min(k0 + TILE_SIZE, K);
+                
+                for (int i = i0; i < imax; i++) {
+                    for (int k = k0; k < kmax; k++) {
+                        double a_val = A.at(i, k);
+                        __m256d a_vec = _mm256_set1_pd(a_val);
+                        
+                        int j = j0;
+                        for (; j + VECTOR_SIZE <= jmax; j += VECTOR_SIZE) {
+                            __m256d b_vec = _mm256_loadu_pd(B.get_ptr(k, j));
+                            __m256d c_vec = _mm256_loadu_pd(C.get_ptr(i, j));
+                            c_vec = _mm256_fmadd_pd(a_vec, b_vec, c_vec);
+                            _mm256_storeu_pd(C.get_ptr(i, j), c_vec);
+                        }
+                        
+                        for (; j < jmax; j++) {
+                            C.at(i, j) += a_val * B.at(k, j);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    return C;
+}
+
 Matrix optimized_matrix_multiply(const Matrix& A, const Matrix& B) {
     int M = A.get_rows();
     int K = A.get_cols();
     int N = B.get_cols();
+
+    if (M >= LARGE_MATRIX_THRESHOLD || N >= LARGE_MATRIX_THRESHOLD || K >= LARGE_MATRIX_THRESHOLD) {
+        return tiled_multiply_large(A, B);
+    }
     
     if (should_use_strassen(M, N, K)) {
         return strassen_multiply(A, B);
@@ -419,15 +473,32 @@ std::vector<std::vector<double>> matrix_multiply(
     
     validate_matrices(A, B);
     
-    Matrix A_flat(A);
-    Matrix B_flat(B);
-    
-    Matrix C_flat = optimized_matrix_multiply(A_flat, B_flat);
-    
-    return C_flat.to_vector();
+    try {
+        size_t rows_A = A.size();
+        size_t cols_A = A[0].size();
+        size_t rows_B = B.size();
+        size_t cols_B = B[0].size();
+        
+        bool is_large = (rows_A >= LARGE_MATRIX_THRESHOLD || 
+                         cols_A >= LARGE_MATRIX_THRESHOLD || 
+                         cols_B >= LARGE_MATRIX_THRESHOLD);
+        
+        Matrix A_flat(A);
+        Matrix B_flat(B);
+        Matrix C_flat;
+        
+        C_flat = optimized_matrix_multiply(A_flat, B_flat);
+        
+        return C_flat.to_vector();
+    }
+    catch (const std::bad_alloc& e) {
+        throw std::runtime_error("Memory allocation failed. Matrix may be too large for available memory.");
+    }
 }
 
 PYBIND11_MODULE(MathExt, m) {
+    optimize_threads();
+    
     m.doc() = "Extension module for efficient matrix multiplication";
     m.def("matrix_multiply", &matrix_multiply,
           "Multiply two matrices using optimized SIMD and blocking",
