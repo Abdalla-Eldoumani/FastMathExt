@@ -415,7 +415,7 @@ Matrix tiled_multiply_large(const Matrix& A, const Matrix& B) {
     
     Matrix C(M, N);
 
-    const int TILE_SIZE = 512;
+    constexpr int TILE_SIZE = 512;
     
     #pragma omp parallel for collapse(2) schedule(dynamic)
     for (int i0 = 0; i0 < M; i0 += TILE_SIZE) {
@@ -478,10 +478,6 @@ std::vector<std::vector<double>> matrix_multiply(
         size_t cols_A = A[0].size();
         size_t rows_B = B.size();
         size_t cols_B = B[0].size();
-        
-        bool is_large = (rows_A >= LARGE_MATRIX_THRESHOLD || 
-                         cols_A >= LARGE_MATRIX_THRESHOLD || 
-                         cols_B >= LARGE_MATRIX_THRESHOLD);
         
         Matrix A_flat(A);
         Matrix B_flat(B);
